@@ -19,12 +19,17 @@ import urllib.error
 import urllib.request
 from typing import Any, Dict, List, Optional, Tuple
 
+if importlib.util.find_spec("requests") is not None:
+    import requests
+else:
+    requests = None
+
 
 # ------------------------------
 # 默认模型与默认地址（可被环境变量覆盖）
 # ------------------------------
 OLLAMA_DEFAULT_BASE_URL = "http://localhost:11434"
-OLLAMA_DEFAULT_MODEL = "qwen2.5:3b"
+OLLAMA_DEFAULT_MODEL = "gemma4:e4b"
 OPENAI_DEFAULT_MODEL = "gpt-4.1-mini"
 GEMINI_DEFAULT_MODEL = "gemini-2.0-flash"
 
@@ -128,6 +133,17 @@ def _get_ollama_model(model: Optional[str] = None) -> str:
     return model or os.getenv("OLLAMA_MODEL") or OLLAMA_DEFAULT_MODEL
 
 
+def _get_ollama_timeout() -> float:
+    """读取 Ollama 请求超时秒数，默认 120 秒。"""
+    raw_timeout = (os.getenv("OLLAMA_TIMEOUT") or "120").strip()
+    try:
+        timeout_val = float(raw_timeout)
+    except Exception:
+        timeout_val = 120.0
+    # 至少 1 秒，避免异常配置导致 0/负数。
+    return max(timeout_val, 1.0)
+
+
 def _has_ollama(base_url: Optional[str] = None) -> Tuple[bool, Optional[str], Dict[str, Any]]:
     """检查 Ollama 服务是否可达。
 
@@ -211,7 +227,7 @@ def _extract_first_json_object(text: str) -> Optional[str]:
     return None
 
 
-def _safe_json_loads(text: str, provider_name: str) -> Tuple[Optional[Dict[str, Any]], Optional[str], str]:
+def _safe_json_loads(text: str, provider_name: str = "llm") -> Tuple[Optional[Dict[str, Any]], Optional[str], str]:
     """稳健 JSON 解析。
 
     解析顺序：
@@ -246,7 +262,7 @@ def _safe_json_loads(text: str, provider_name: str) -> Tuple[Optional[Dict[str, 
         except Exception:
             continue
 
-    # 3) 文本中第一个 JSON object
+    # 3) 文本中第一个 JSON object（额外增强，兼容模型在 JSON 前后加说明文字）
     first_obj = _extract_first_json_object(content)
     if first_obj:
         try:
@@ -304,8 +320,12 @@ def _local_action_payload(lot_features: Dict[str, Any]) -> Dict[str, Any]:
 def _build_system_prompt() -> str:
     """统一系统提示词，保持不同 provider 输出风格一致。"""
     return (
-        "你是电镀工艺良率分析工程师助手。请使用工业场景、克制专业语气，"
-        "输出结构化 JSON，仅给出原因解释和建议动作，不夸张。"
+        "你是电镀工艺良率分析工程师助手。"
+        "不要输出思考过程。"
+        "只输出 JSON，不要输出任何额外文字。"
+        "请使用工业场景、克制专业语气。"
+        "key_reasons 最多 3 条，每条不超过 30 字。"
+        "actions 最多 3 条，每条不超过 30 字。"
     )
 
 
@@ -398,8 +418,24 @@ def _call_gemini(prompt: str) -> Dict[str, Any]:
 
 def _call_ollama(prompt: str, model: Optional[str] = None) -> Dict[str, Any]:
     """调用 Ollama 原生 API（/api/chat）。"""
+    if requests is None:
+        return {
+            "ok": False,
+            "provider": "ollama",
+            "error": "requests not installed",
+            "debug": {},
+        }
+
     base_url = _get_ollama_base_url()
     chosen_model = _get_ollama_model(model)
+    timeout = _get_ollama_timeout()
+    chat_url = f"{base_url}/api/chat"
+
+    # 先打印调用调试信息，便于 notebook 现场排查。
+    print("OLLAMA DEBUG:")
+    print("url:", chat_url)
+    print("model:", chosen_model)
+    print("timeout:", timeout)
 
     # 1) 在线检查
     reachable, reach_err, dbg = _has_ollama(base_url=base_url)
@@ -436,7 +472,10 @@ def _call_ollama(prompt: str, model: Optional[str] = None) -> Dict[str, Any]:
     # 3) 正式调用 /api/chat
     payload = {
         "model": chosen_model,
+        # 关键：关闭流式返回，避免 chunk 导致调用方等待超时。
         "stream": False,
+        # 降低长时间思考造成的延迟波动。
+        "think": False,
         "messages": [
             {"role": "system", "content": _build_system_prompt()},
             {"role": "user", "content": prompt},
@@ -444,26 +483,48 @@ def _call_ollama(prompt: str, model: Optional[str] = None) -> Dict[str, Any]:
         "options": {"temperature": 0.2},
     }
 
-    resp, err = _json_request("POST", f"{base_url}/api/chat", payload=payload, timeout=30.0)
-    if err:
+    try:
+        resp = requests.post(
+            chat_url,
+            json=payload,
+            timeout=timeout,
+        )
+        # 按要求显式抛出 HTTP 异常（4xx/5xx）。
+        resp.raise_for_status()
+        data = resp.json()
+    except requests.exceptions.Timeout:
         return {
             "ok": False,
             "provider": "ollama",
-            "error": f"ollama call failed: {err}",
-            "debug": {"base_url": base_url, "model": chosen_model},
+            "error": f"ollama call failed: timed out after {timeout} seconds",
+            "debug": {"base_url": base_url, "model": chosen_model, "timeout": timeout},
+        }
+    except requests.exceptions.RequestException as e:
+        return {
+            "ok": False,
+            "provider": "ollama",
+            "error": f"ollama call failed: {e}",
+            "debug": {"base_url": base_url, "model": chosen_model, "timeout": timeout},
+        }
+    except Exception as e:
+        return {
+            "ok": False,
+            "provider": "ollama",
+            "error": f"ollama call failed: {e}",
+            "debug": {"base_url": base_url, "model": chosen_model, "timeout": timeout},
         }
 
     # 4) 读取内容并解析 JSON
     text = ""
-    if isinstance(resp, dict):
-        text = (((resp.get("message") or {}).get("content")) or "").strip()
+    if isinstance(data, dict):
+        text = (((data.get("message") or {}).get("content")) or "").strip()
     if not text:
         return {
             "ok": False,
             "provider": "ollama",
             "error": "ollama empty response",
-            "raw_text": _trim_raw_text(resp),
-            "debug": {"base_url": base_url, "model": chosen_model},
+            "raw_text": _trim_raw_text(data),
+            "debug": {"base_url": base_url, "model": chosen_model, "timeout": timeout},
         }
 
     data, parse_err, raw = _safe_json_loads(text, provider_name="ollama")
@@ -473,7 +534,7 @@ def _call_ollama(prompt: str, model: Optional[str] = None) -> Dict[str, Any]:
             "provider": "ollama",
             "error": parse_err,
             "raw_text": raw,
-            "debug": {"base_url": base_url, "model": chosen_model},
+            "debug": {"base_url": base_url, "model": chosen_model, "timeout": timeout},
         }
 
     return {
@@ -481,7 +542,7 @@ def _call_ollama(prompt: str, model: Optional[str] = None) -> Dict[str, Any]:
         "provider": "ollama",
         "data": data,
         "raw_text": raw,
-        "debug": {"base_url": base_url, "model": chosen_model},
+        "debug": {"base_url": base_url, "model": chosen_model, "timeout": timeout},
     }
 
 
@@ -677,8 +738,10 @@ def generate_lot_explanation(
 ) -> Dict[str, Any]:
     """生成 lot 风险解释（支持多 provider + fallback）。"""
     prompt = (
-        "请针对以下 lot 输出 JSON，字段包含: lot_id, risk_summary, key_reasons(list), "
-        "similar_cases(list), tone。\n"
+        "请针对以下 lot 输出 JSON。\n"
+        "必须字段: lot_id, risk_summary, key_reasons(list), similar_cases(list), tone, actions(list)。\n"
+        "不要输出思考过程。只输出 JSON，不要输出任何额外文字。\n"
+        "key_reasons 最多3条，每条<=30字；actions 最多3条，每条<=30字。\n"
         f"lot_features={json.dumps(lot_features, ensure_ascii=False)}\n"
         f"similar_cases={json.dumps(similar_cases or [], ensure_ascii=False)}\n"
         "重点强调 E03、Night、电流偏高、与历史异常 lot 相似。"
@@ -694,7 +757,10 @@ def generate_action_advice(
 ) -> Dict[str, Any]:
     """生成 lot 建议动作（支持多 provider + fallback）。"""
     prompt = (
-        "请针对以下 lot 输出 JSON，字段包含: lot_id, advice_level, actions(list), note。\n"
+        "请针对以下 lot 输出 JSON。\n"
+        "必须字段: lot_id, advice_level, actions(list), note, key_reasons(list), risk_summary。\n"
+        "不要输出思考过程。只输出 JSON，不要输出任何额外文字。\n"
+        "actions 最多3条，每条<=30字；key_reasons 最多3条，每条<=30字。\n"
         f"lot_features={json.dumps(lot_features, ensure_ascii=False)}\n"
         "动作建议需克制、专业，且必须包含：加严检、检查设备E03、复核电流设置。"
     )
