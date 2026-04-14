@@ -14,6 +14,8 @@ pip install pandas numpy matplotlib scikit-learn jupyter openai google-genai pyt
 ### OpenAI
 ```bash
 export OPENAI_API_KEY="your_openai_api_key"
+# 可选
+export OPENAI_MODEL="gpt-4.1-mini"
 ```
 
 ### Gemini（任选其一）
@@ -21,6 +23,20 @@ export OPENAI_API_KEY="your_openai_api_key"
 export GEMINI_API_KEY="your_gemini_api_key"
 # 或
 export GOOGLE_API_KEY="your_google_api_key"
+# 可选
+export GEMINI_MODEL="gemini-2.0-flash"
+```
+
+### Ollama（本地模型）
+```bash
+export OLLAMA_BASE_URL="http://localhost:11434"
+export OLLAMA_MODEL="qwen2.5:3b"   # 例如 qwen2.5:7b-instruct / gemma3:4b
+```
+
+本地启动示例：
+```bash
+ollama serve
+ollama pull qwen2.5:3b
 ```
 
 > 代码会自动读取环境变量；不会在源码或 Notebook 中硬编码密钥。
@@ -34,21 +50,24 @@ OPENAI_API_KEY=your_openai_api_key
 GEMINI_API_KEY=your_gemini_api_key
 # 或
 GOOGLE_API_KEY=your_google_api_key
+# 可选
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_MODEL=qwen2.5:3b
 ```
 
-`src/llm_provider.py` 会自动尝试 `load_dotenv()`，因此可以直接从 `.env` 读取 key（未安装 `python-dotenv` 时会自动跳过，不影响本地 fallback）。
+`src/llm_provider.py` 会自动尝试 `load_dotenv()`，因此可以直接从 `.env` 读取 key（未安装 `python-dotenv` 时会自动跳过，不影响 local fallback）。
 
 ## 3) 启动演示
 ```bash
 jupyter notebook notebooks/aami_yield_ai_copilot_demo.ipynb
 ```
 
-## 4) LLM 解释开关
+## 4) LLM 解释开关与 provider 逻辑
 Notebook 中提供：
 
 ```python
 USE_LLM = True
-LLM_PROVIDER = "auto"  # auto / openai / gemini / local
+LLM_PROVIDER = "auto"  # auto / openai / gemini / ollama / local
 ```
 
 行为逻辑：
@@ -56,14 +75,20 @@ LLM_PROVIDER = "auto"  # auto / openai / gemini / local
 - `USE_LLM=True` 且 `LLM_PROVIDER="auto"`：
   1. 先尝试 OpenAI（存在 `OPENAI_API_KEY`）
   2. 否则尝试 Gemini（存在 `GEMINI_API_KEY` 或 `GOOGLE_API_KEY`）
-  3. 都没有则使用 local fallback
+  3. 否则尝试 Ollama（本地服务可达）
+  4. 最后回退 local fallback
 
-Notebook 会打印当前解释方式：
-- 当前解释由 OpenAI 生成
-- 当前解释由 Gemini 生成
-- 当前解释由本地模板生成
+## 5) 在 Notebook 看实际调试信息
+“风险解释”和“建议动作”输出中会打印以下字段：
+- `provider`（最终实际 provider）
+- `attempted_provider`（最初尝试 provider）
+- `fallback_used`
+- `fallback_reason`
+- `error`
 
-## 5) 数据文件
+即使发生 fallback，也能看到失败原因，不再静默。
+
+## 6) 数据文件
 - 原始数据：`data/aami_yield_demo.csv`
 - 清洗数据：`data/aami_yield_demo_clean.csv`
 
