@@ -11,6 +11,23 @@ import os
 from typing import Any, Dict, List
 
 
+def _load_env_from_dotenv() -> None:
+    """Best-effort load for .env so API keys can be managed outside code."""
+    if importlib.util.find_spec("dotenv") is None:
+        return
+
+    try:
+        from dotenv import load_dotenv
+
+        load_dotenv(override=False)
+    except Exception:
+        # Keep demo stable even if dotenv behaves unexpectedly.
+        return
+
+
+_load_env_from_dotenv()
+
+
 def _has_openai_key() -> bool:
     return bool(os.getenv("OPENAI_API_KEY"))
 

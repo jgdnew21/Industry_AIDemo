@@ -7,7 +7,7 @@
 建议在 Python 3.10+ 环境安装：
 
 ```bash
-pip install pandas numpy matplotlib scikit-learn jupyter openai google-genai
+pip install pandas numpy matplotlib scikit-learn jupyter openai google-genai python-dotenv
 ```
 
 ## 2) 环境变量配置（可选）
@@ -24,6 +24,19 @@ export GOOGLE_API_KEY="your_google_api_key"
 ```
 
 > 代码会自动读取环境变量；不会在源码或 Notebook 中硬编码密钥。
+
+### 使用 `.env` 文件（推荐）
+也可以在项目根目录创建 `.env`：
+
+```bash
+OPENAI_API_KEY=your_openai_api_key
+# 或
+GEMINI_API_KEY=your_gemini_api_key
+# 或
+GOOGLE_API_KEY=your_google_api_key
+```
+
+`src/llm_provider.py` 会自动尝试 `load_dotenv()`，因此可以直接从 `.env` 读取 key（未安装 `python-dotenv` 时会自动跳过，不影响本地 fallback）。
 
 ## 3) 启动演示
 ```bash
