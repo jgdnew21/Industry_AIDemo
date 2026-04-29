@@ -1,0 +1,4 @@
+[filter "nbstripout"]
+	clean = nbstripout
+	smudge = cat
+	required = true
