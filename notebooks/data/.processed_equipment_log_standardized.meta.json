@@ -1,0 +1,8 @@
+{
+  "input_signature": {
+    "path": "/Users/jiaoguodong/Desktop/myApp/Industry_AIDemo/data/equipment_log.xlsx",
+    "size": 1375056,
+    "mtime_ns": 1777358575276736152
+  },
+  "output_file": "/Users/jiaoguodong/Desktop/myApp/Industry_AIDemo/notebooks/data/processed_equipment_log_standardized.xlsx"
+}
