@@ -1,0 +1,5 @@
+﻿qc_record_id,lot_id,production_number,product_name,inspection_time,inspected_qty,pass_qty,fail_qty,yield_rate,avi_result,top_defect_type,defect_count,secondary_defect_type,secondary_defect_count,qc_judgement,qc_comment
+QC-20260420-001,LOT-20260420-L1-001,WO-20260420-001,1,2026-04-20 11:10:00,980,930,50,94.9,warning,light_scratch,32,plating_non_uniform,18,warning,演示数据：良率略低，建议回放运行速度、ED电流和设备压力。
+QC-20260421-001,LOT-20260421-L2-001,WO-20260421-001,3,2026-04-21 11:45:00,1150,1088,62,94.61,warning,plating_non_uniform,41,surface_contamination,21,warning,演示数据：AVI显示镀层不均偏多，建议关注Ag Strike和DI压力。
+QC-20260423-001,LOT-20260423-L1-001,WO-20260423-001,11,2026-04-23 12:40:00,890,875,15,98.31,pass,none,0,minor_edge_defect,15,pass,演示数据：稳定批次，用于和异常批次对比。
+QC-20260425-001,LOT-20260425-L2-001,WO-20260425-001,4,2026-04-25 17:45:00,1020,900,120,88.24,fail,plating_non_uniform,85,surface_contamination,35,fail,演示数据：低良率批次，用于展示AI风险提醒和lot级追溯。

@@ -1,0 +1,5 @@
+﻿lot_id,production_number,product_name,product_display_name,line,equipment_id,operator_id,operator_name,planned_start_time,planned_end_time,actual_start_time,actual_end_time,planned_qty,actual_qty,lot_status,note
+LOT-20260420-L1-001,WO-20260420-001,1,Product-1 Demo,L1,PLATING-01,OP-001,张三,2026-04-20 08:00:00,2026-04-20 10:30:00,2026-04-20 08:00:00,2026-04-20 10:30:00,1000,980,warning,演示用模拟工单：产品1，L1产线，包含短时运行与停顿，用于展示点检与停机识别。
+LOT-20260421-L2-001,WO-20260421-001,3,Product-3 Demo,L2,PLATING-01,OP-002,李四,2026-04-21 08:00:00,2026-04-21 11:00:00,2026-04-21 08:00:00,2026-04-21 11:00:00,1200,1150,warning,演示用模拟工单：产品3，L2产线，用于展示生产速度、设备参数与AVI结果关联。
+LOT-20260423-L1-001,WO-20260423-001,11,Product-11 Demo,L1,PLATING-01,OP-003,王五,2026-04-23 09:00:00,2026-04-23 12:00:00,2026-04-23 09:00:00,2026-04-23 12:00:00,900,890,completed,演示用模拟工单：产品11，L1产线，作为相对稳定批次。
+LOT-20260425-L2-001,WO-20260425-001,4,Product-4 Demo,L2,PLATING-01,OP-004,赵六,2026-04-25 14:00:00,2026-04-25 17:00:00,2026-04-25 14:00:00,2026-04-25 17:00:00,1100,1020,abnormal,演示用模拟工单：产品4，L2产线，作为低良率/异常批次，用于展示风险提醒。

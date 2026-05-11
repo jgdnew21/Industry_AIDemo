@@ -1,0 +1,25 @@
+﻿product_name,spec_id,parameter_name,parameter_scope,check_type,target_value,lower_limit,upper_limit,expected_value,unit,severity,apply_when,active_filter_parameter,active_filter_operator,active_filter_value,checklist_item,sop_hint,manager_alert_rule
+1,SPEC-P1-001,Running Speed,line,range,2.2,1.8,2.6,,m/min,warning,always,,,,确认产品1运行速度处于设定范围,按产品1作业指导确认速度设定。,no
+1,SPEC-P1-002,ED(1) Current,line,range,30.0,28.0,32.0,,A,critical,during_production,Running Speed,>,0.1,确认产品1 ED(1) 电流处于工艺范围,如电流偏离，请确认整流器设定与夹具接触状态。,yes
+1,SPEC-P1-003,ED(1) Voltage,line,range,11.8,11.0,12.5,,V,warning,during_production,Running Speed,>,0.1,确认产品1 ED(1) 电压稳定,如电压波动，请确认槽液状态和导电接触。,no
+1,SPEC-P1-004,Ag Strike(1) Current,line,range,10.0,8.0,12.0,,A,critical,during_production,Running Speed,>,0.1,确认产品1 Ag Strike 电流符合要求,首件和换批时重点确认 Ag Strike 电流。,yes
+1,SPEC-P1-005,device_DI(1) Pressure,device,range,1.1,0.9,1.3,,MPa,critical,always,,,,确认 DI(1) 压力稳定,如压力低于下限，请检查供液/过滤系统。,yes
+1,SPEC-P1-006,device_Ag Spot pH,device,range,7.25,7.2,7.35,,pH,warning,always,,,,确认 Ag Spot pH 在控制范围,如 pH 变动，请联系工艺确认药液状态。,no
+3,SPEC-P3-001,Running Speed,line,range,6.0,5.5,6.3,,m/min,warning,during_production,Running Speed,>,0.1,确认产品3运行速度符合要求,速度偏离时记录是否有人工调速。,no
+3,SPEC-P3-002,ED(1) Current,line,range,30.0,28.0,32.0,,A,critical,during_production,Running Speed,>,0.1,确认产品3 ED(1) 电流处于工艺范围,电流异常时应检查整流器与夹具。,yes
+3,SPEC-P3-003,ED(1) Voltage,line,range,14.3,13.8,15.0,,V,warning,during_production,Running Speed,>,0.1,确认产品3 ED(1) 电压稳定,电压波动时需复核槽液状态。,no
+3,SPEC-P3-004,Ag Strike(1) Current,line,range,10.0,8.0,12.0,,A,critical,during_production,Running Speed,>,0.1,确认产品3 Ag Strike 电流符合要求,Ag Strike 是产品3重点点检项。,yes
+3,SPEC-P3-005,device_RO(1) Pressure,device,range,6.0,5.8,6.2,,bar,warning,always,,,,确认 RO(1) 压力稳定,如 RO 压力波动，请记录供水系统状态。,no
+3,SPEC-P3-006,device_DI(1) Pressure,device,range,1.1,0.95,1.25,,MPa,critical,always,,,,确认 DI(1) 压力稳定,DI 压力异常可能影响清洗效果。,yes
+11,SPEC-P11-001,Running Speed,line,range,6.0,5.7,6.4,,m/min,warning,during_production,Running Speed,>,0.1,确认产品11运行速度稳定,产品11作为稳定批次样例。,no
+11,SPEC-P11-002,ED(1) Current,line,range,30.0,28.0,32.0,,A,critical,during_production,Running Speed,>,0.1,确认产品11 ED(1) 电流稳定,电流稳定性用于后续对比低良率批次。,yes
+11,SPEC-P11-003,ED(1) Voltage,line,range,12.3,12.0,12.6,,V,warning,during_production,Running Speed,>,0.1,确认产品11 ED(1) 电压稳定,电压稳定性用于生产窗口回放。,no
+11,SPEC-P11-004,Ag Strike(1) Current,line,range,30.0,28.0,32.0,,A,critical,during_production,Running Speed,>,0.1,确认产品11 Ag Strike 电流稳定,确认 Ag Strike 阶段没有异常波动。,yes
+11,SPEC-P11-005,Ag Strike(1) Voltage,line,range,5.1,4.9,5.4,,V,warning,during_production,Running Speed,>,0.1,确认产品11 Ag Strike 电压稳定,电压偏离时记录现场调整。,no
+11,SPEC-P11-006,device_Ag Spot pH,device,range,7.75,7.5,8.0,,pH,warning,always,,,,确认 Ag Spot pH 在控制范围,pH 稳定性作为质量追溯背景参数。,no
+4,SPEC-P4-001,Running Speed,line,range,3.2,2.8,3.6,,m/min,warning,during_production,Running Speed,>,0.1,确认产品4运行速度符合要求,产品4用于异常样例，重点观察速度中断。,no
+4,SPEC-P4-002,ED(1) Current,line,range,30.0,28.0,32.0,,A,critical,during_production,Running Speed,>,0.1,确认产品4 ED(1) 电流处于工艺范围,电流偏离应触发主管关注。,yes
+4,SPEC-P4-003,Ag Strike(1) Current,line,range,8.0,7.0,9.0,,A,critical,during_production,Running Speed,>,0.1,确认产品4 Ag Strike 电流处于工艺范围,Ag Strike 电流与镀层均匀性复盘相关。,yes
+4,SPEC-P4-004,Ag Strike(1) Voltage,line,range,3.1,2.8,3.5,,V,warning,during_production,Running Speed,>,0.1,确认产品4 Ag Strike 电压稳定,电压波动时记录是否有人工干预。,no
+4,SPEC-P4-005,device_DI(1) Pressure,device,range,1.1,0.95,1.25,,MPa,critical,always,,,,确认 DI(1) 压力稳定,DI 压力异常可能影响清洗质量。,yes
+4,SPEC-P4-006,device_Ag Spot pH,device,range,7.7,7.5,7.85,,pH,warning,always,,,,确认 Ag Spot pH 在控制范围,pH 偏离时建议复核药液状态。,no
