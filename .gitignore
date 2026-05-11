@@ -1,3 +1,8 @@
 # Jupyter 自动生成的检查点文件
 .ipynb_checkpoints/
 */.ipynb_checkpoints/
+# Excel temporary files
+*.~*
+.~*
+~$*.xlsx
+~$*.xls
